@@ -1,0 +1,25 @@
+{
+  "name": "radio-rolnik-player",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Maathias/radio-rolnik-player.git"
+  },
+  "author": "Mateusz Pstrucha",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Maathias/radio-rolnik-player/issues"
+  },
+  "homepage": "https://github.com/Maathias/radio-rolnik-player#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "got": "^11.8.2",
+    "ky": "^0.28.5"
+  }
+}
