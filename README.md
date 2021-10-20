@@ -2,9 +2,9 @@
 
 ## Resources
 
-https://github.com/Maathias/radio-rolnik/
+Website - https://github.com/Maathias/radio-rolnik/
 
-https://github.com/Maathias/radio-rolnik-api/
+API - https://github.com/Maathias/radio-rolnik-api/
 
 ## Requirements
 
@@ -19,10 +19,17 @@ https://github.com/Maathias/radio-rolnik-api/
 
 ## .env
 
-### General
-
 ```ini
-DOMAIN=https://radio.rolniknysa.pl/api
+; api variables
+DOMAIN=radio.rolniknysa.pl
 SECRET=<server api secret>
+
+; playback volume (0-100)
 VOLUME_DEFAULT=100
+
+; playback delay (s)
+OFFSET=60
+
+; logging level (0-2)
+VERBOSE=0
 ```
