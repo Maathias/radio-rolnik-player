@@ -66,7 +66,7 @@ def change(args):
     url, *args = args
 
     audio = pafy.new(url)
-    best = audio.getbestaudio()
+    best = audio.getbestaudio(preftype="webm")
     playurl = best.url
     Media = Instance.media_new(playurl)
     # Media.get_mrl()
