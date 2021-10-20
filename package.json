@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Maathias/radio-rolnik-player#readme",
   "dependencies": {
+    "chalk": "^4.1.2",
     "dotenv": "^10.0.0",
     "got": "^11.8.2",
     "ky": "^0.28.5"
