@@ -1,4 +1,5 @@
 import dotenv from 'dotenv'
+import chalk from 'chalk'
 
 import { player, queueCommand } from './modules/playback.js'
 import { getTop, updateNext, updateStatus } from './modules/calls.js'
@@ -8,7 +9,9 @@ import Track from './Track.js'
 
 dotenv.config()
 
-const defaultVolume = parseInt(process.env.VOLUME_DEFAULT)
+const defaultVolume = parseInt(process.env.VOLUME_DEFAULT),
+	offset = Number(process.env.OFFSET),
+	verbose = Number(process.env.VERBOSE)
 
 function play(track) {
 	queueCommand('volume', [defaultVolume])
@@ -24,10 +27,14 @@ function sToHM(seconds) {
 	return [h, m]
 }
 
-console.info(`Fetching playlist data`)
+console.info(
+	`Volume: ${chalk.yellow(defaultVolume)}, Verbose: ${chalk.yellow(verbose)}`
+)
+
+console.info(`Fetching playlist (${chalk.yellow(process.env.DOMAIN)})`)
 
 getTop()
-	.then((data) => {
+	.then(async (data) => {
 		console.info(`Parsing playlist`)
 
 		let schedule = durations.map(() => [])
@@ -52,19 +59,20 @@ getTop()
 		throw err
 	})
 	.then((schedule) => {
-		let currentSeconds = now()
+		let currentSeconds = now() - offset
 
-		console.info(`Running track scheduler`)
+		console.info(
+			`Running track scheduler @${new Date().toLocaleTimeString()} +${chalk.yellow(
+				offset
+			)}s`
+		)
 
 		for (let nthPrzerwa in seconds) {
 			let [begin, end] = seconds[nthPrzerwa]
 
-			// skip przerwa if it already passed
-			if (begin < currentSeconds) continue
-
 			var tracktotal = 0
 
-			console.info(`Przerwa #${nthPrzerwa}`)
+			console.info(chalk.green(`\nPrzerwa #${nthPrzerwa}`))
 
 			schedule[nthPrzerwa].forEach((track, i) => {
 				tracktotal += (schedule[nthPrzerwa][i - 1]?.duration ?? 0) / 1e3
@@ -73,20 +81,38 @@ getTop()
 
 				let [h, m] = sToHM(currentSeconds + sched)
 
-				console.info(`scheduling ${track.tid} @ ${h}:${m} in ${sched}s`)
+				console.info(
+					`scheduling ${track.tid} @ ${chalk.red(`${h}:${m}`)} in ${sched}s`
+				)
+
+				console.info(
+					`  (${chalk.cyan((track.duration / 60e3).toFixed(1))}) [${chalk.blue(
+						track.title.slice(0, 50)
+					)}]`
+				)
+
+				if (sched < 0) return
 
 				setTimeout(() => {
 					console.info(
-						`playing ${track.tid} (${track.ytid}) [${track.duration}] ${track.title}`
+						`${chalk.magenta(`${h}:${m}`)} playing ${track.tid} (${track.ytid})`
 					)
+
+					console.info(
+						`(${chalk.cyan((track.duration / 60e3).toFixed(1))}) ${chalk.blue(
+							track.title.slice(0, 50)
+						)} `
+					)
+
 					play(track)
 					updateNext(schedule[nthPrzerwa][i + 1]?.tid ?? null)
 				}, sched * 1e3)
 			})
 
-			setTimeout(() => {
-				console.info(`Beginning of #${nthPrzerwa} approaching`)
-			}, (begin - currentSeconds) * 1e3 - 10e3)
+			verbose > 0 &&
+				setTimeout(() => {
+					console.info(`Beginning of #${nthPrzerwa} in 10s`)
+				}, (begin - currentSeconds) * 1e3 - 10e3)
 
 			let endin = end - currentSeconds,
 				[h, m] = sToHM(end)
@@ -95,10 +121,18 @@ getTop()
 
 			setTimeout(() => {
 				console.info(`Ending playback for #${nthPrzerwa}`)
-				player.fadeOut(10)
+				player.fadeOut(6)
 				updateStatus(null, null, null, true)
+
+				if (nthPrzerwa == seconds.length - 1) {
+					console.info(`--- Day Ended ---`)
+					setTimeout(() => {
+						process.exit(0)
+					}, 20e3)
+				}
 			}, endin * 1e3)
 		}
 
-		console.info(`Track scheduling done`)
+		console.info(`\nTrack scheduling done`)
+		console.info(`_______________________________`)
 	})
