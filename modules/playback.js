@@ -14,7 +14,7 @@ radio.stdout.on('data', (data) => {
 	for (let line of lines) {
 		let [status, ...data] = JSON.parse(line)
 
-		verbose > 0 && console.info(' -> ', status, data)
+		verbose > 0 && console.info(' <  ', status, data)
 
 		if (status == 'waiting')
 			if (data[0]) {
@@ -35,7 +35,7 @@ radio.on('close', (code) => {
 })
 
 function sendCommand(comm, data = [null]) {
-	verbose > 1 && console.info(' <- ', comm, data)
+	verbose > 1 && console.info('  > ', comm, data)
 	busy = true
 	radio.stdin.write(JSON.stringify(['command', comm, ...data]) + '\n')
 }

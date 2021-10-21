@@ -27,6 +27,10 @@ function sToHM(seconds) {
 	return [h, m]
 }
 
+function pad(n) {
+	return n < 10 ? '0' + n : n
+}
+
 console.info(
 	`Volume: ${chalk.yellow(defaultVolume)}, Verbose: ${chalk.yellow(verbose)}`
 )
@@ -82,11 +86,13 @@ getTop()
 				let [h, m] = sToHM(currentSeconds + sched)
 
 				console.info(
-					`scheduling ${track.tid} @ ${chalk.red(`${h}:${m}`)} in ${sched}s`
+					`scheduling ${track.tid} @ ${chalk.red(
+						`${h}:${pad(m)}`
+					)} in ${sched}s`
 				)
 
 				console.info(
-					`  (${chalk.cyan((track.duration / 60e3).toFixed(1))}) [${chalk.blue(
+					`╚═ (${chalk.cyan((track.duration / 60e3).toFixed(1))}) [${chalk.blue(
 						track.title.slice(0, 50)
 					)}]`
 				)
@@ -95,13 +101,15 @@ getTop()
 
 				setTimeout(() => {
 					console.info(
-						`${chalk.magenta(`${h}:${m}`)} playing ${track.tid} (${track.ytid})`
+						`${chalk.magenta(`${h}:${pad(m)}`)} playing ${track.tid} (${
+							track.ytid
+						})`
 					)
 
 					console.info(
-						`(${chalk.cyan((track.duration / 60e3).toFixed(1))}) ${chalk.blue(
-							track.title.slice(0, 50)
-						)} `
+						` ╚ (${chalk.cyan(
+							(track.duration / 60e3).toFixed(1)
+						)}) ${chalk.blue(track.title.slice(0, 50))} `
 					)
 
 					play(track)
@@ -117,22 +125,28 @@ getTop()
 			let endin = end - currentSeconds,
 				[h, m] = sToHM(end)
 
-			console.info(`End of playback #${nthPrzerwa} @ ${h}:${m}`)
+			console.info(`» End of playback #${nthPrzerwa} @ ${h}:${pad(m)}`)
 
-			setTimeout(() => {
-				console.info(`Ending playback for #${nthPrzerwa}`)
-				player.fadeOut(6)
-				updateStatus(null, null, null, true)
-
-				if (nthPrzerwa == seconds.length - 1) {
-					console.info(`--- Day Ended ---`)
+			if (nthPrzerwa == seconds.length - 1) {
+				setTimeout(() => {
+					console.info(`≡≡≡ Day Ended ≡≡≡`)
 					setTimeout(() => {
 						process.exit(0)
-					}, 20e3)
-				}
+					}, 10e3)
+				}, endin * 1e3)
+			}
+
+			if (endin < 0) continue
+
+			setTimeout(() => {
+				console.info(`« Ending playback for #${nthPrzerwa} »\n`)
+				player.fadeOut(6)
+				updateStatus(null, null, null, true)
 			}, endin * 1e3)
 		}
 
+		player.pause()
+
 		console.info(`\nTrack scheduling done`)
-		console.info(`_______________________________`)
+		console.info(`─────────────────────────`)
 	})
