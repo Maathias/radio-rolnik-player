@@ -29,8 +29,8 @@ def pause(args):
 def volume(args):
     vol, *args = args
 
-    player.audio_set_volume(vol)
-    info('volume', ['set', vol])
+    result = player.audio_set_volume(vol)
+    info('volume', ['set', vol, result])
 
 
 def fadeOut(args):
@@ -42,7 +42,7 @@ def fadeOut(args):
         player.audio_set_volume(v)
         sleep(duration / vol)
 
-    stop()
+    pause([])
     info('fadeOut', ['done'])
 
 

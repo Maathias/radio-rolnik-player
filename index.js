@@ -9,14 +9,14 @@ import Track from './Track.js'
 
 dotenv.config()
 
-const defaultVolume = parseInt(process.env.VOLUME_DEFAULT),
-	offset = Number(process.env.OFFSET),
-	verbose = Number(process.env.VERBOSE)
+const defaultVolume = parseInt(process.env.VOLUME_DEFAULT ?? 100),
+	offset = Number(process.env.OFFSET ?? 0),
+	verbose = Number(process.env.VERBOSE ?? 0)
 
 function play(track) {
-	queueCommand('volume', [defaultVolume])
 	queueCommand('change', [track.url])
 	player.play()
+	queueCommand('volume', [defaultVolume])
 	updateStatus(track.tid, 0, track.duration, false)
 }
 
