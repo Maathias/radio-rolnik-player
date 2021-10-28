@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import env from './env.js'
 import chalk from 'chalk'
 
 import { player, queueCommand } from './modules/playback.js'
@@ -6,8 +6,6 @@ import { getTop, updateNext, updateStatus } from './modules/calls.js'
 import { now, durations, seconds } from './modules/timings.js'
 
 import Track from './Track.js'
-
-dotenv.config()
 
 const defaultVolume = parseInt(process.env.VOLUME_DEFAULT ?? 100),
 	offset = Number(process.env.OFFSET ?? 0),
@@ -32,7 +30,9 @@ function pad(n) {
 }
 
 console.info(
-	`Volume: ${chalk.yellow(defaultVolume)}, Verbose: ${chalk.yellow(verbose)}`
+	`Volume: ${chalk.yellow(defaultVolume)}, Verbose: ${chalk.yellow(
+		verbose
+	)}, Limit: ${chalk.yellow(process.env.LIMIT)}`
 )
 
 console.info(`Fetching playlist (${chalk.yellow(process.env.DOMAIN)})`)
@@ -97,7 +97,7 @@ getTop()
 					)}]`
 				)
 
-				if (sched < 0) return
+				if (sched < -10) return
 
 				setTimeout(() => {
 					console.info(

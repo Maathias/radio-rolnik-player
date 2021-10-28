@@ -1,13 +1,11 @@
 import chalk from 'chalk'
-import dotenv from 'dotenv'
 import got from 'got'
 import spotifyToYt from 'spotify-to-yt'
 
-dotenv.config()
-
 const { DOMAIN, SECRET } = process.env,
 	headers = { authorization: 'Bearer ' + SECRET },
-	verbose = Number(process.env.VERBOSE)
+	verbose = Number(process.env.VERBOSE),
+	limit = Number(process.env.LIMIT ?? 40)
 
 function updateStatus(tid, progress, duration, paused) {
 	return new Promise((resolve, reject) => {
@@ -53,11 +51,17 @@ function getTop() {
 			})
 			.json()
 			.then((top) => {
-				console.info(`Resolving ${chalk.cyan(top.length)} tracks`)
+				console.info(
+					`Resolving ${chalk.cyan(
+						top.length > limit ? limit + '/' + top.length : top.length
+					)} tracks`
+				)
 				Promise.all(
-					top.map((tid) => spotifyToYt.trackGet(`spotify:track:${tid}`))
+					top
+						.slice(0, limit)
+						.map((tid) => spotifyToYt.trackGet(`spotify:track:${tid}`))
 				).then((yts) => {
-					top.map((tid, i) => {
+					top.slice(0, limit).map((tid, i) => {
 						yts[i].tid = tid
 					})
 					resolve(yts)
