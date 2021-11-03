@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import env from './env.js'
 import chalk from 'chalk'
 
 import { player, queueCommand } from './modules/playback.js'
@@ -7,16 +7,14 @@ import { now, durations, seconds } from './modules/timings.js'
 
 import Track from './Track.js'
 
-dotenv.config()
-
-const defaultVolume = parseInt(process.env.VOLUME_DEFAULT),
-	offset = Number(process.env.OFFSET),
-	verbose = Number(process.env.VERBOSE)
+const defaultVolume = parseInt(process.env.VOLUME_DEFAULT ?? 100),
+	offset = Number(process.env.OFFSET ?? 0),
+	verbose = Number(process.env.VERBOSE ?? 0)
 
 function play(track) {
-	queueCommand('volume', [defaultVolume])
 	queueCommand('change', [track.url])
 	player.play()
+	queueCommand('volume', [defaultVolume])
 	updateStatus(track.tid, 0, track.duration, false)
 }
 
@@ -27,8 +25,14 @@ function sToHM(seconds) {
 	return [h, m]
 }
 
+function pad(n) {
+	return n < 10 ? '0' + n : n
+}
+
 console.info(
-	`Volume: ${chalk.yellow(defaultVolume)}, Verbose: ${chalk.yellow(verbose)}`
+	`Volume: ${chalk.yellow(defaultVolume)}, Verbose: ${chalk.yellow(
+		verbose
+	)}, Limit: ${chalk.yellow(process.env.LIMIT)}`
 )
 
 console.info(`Fetching playlist (${chalk.yellow(process.env.DOMAIN)})`)
@@ -82,26 +86,30 @@ getTop()
 				let [h, m] = sToHM(currentSeconds + sched)
 
 				console.info(
-					`scheduling ${track.tid} @ ${chalk.red(`${h}:${m}`)} in ${sched}s`
+					`scheduling ${track.tid} @ ${chalk.red(
+						`${h}:${pad(m)}`
+					)} in ${sched}s`
 				)
 
 				console.info(
-					`  (${chalk.cyan((track.duration / 60e3).toFixed(1))}) [${chalk.blue(
+					`╚═ (${chalk.cyan((track.duration / 60e3).toFixed(1))}) [${chalk.blue(
 						track.title.slice(0, 50)
 					)}]`
 				)
 
-				if (sched < 0) return
+				if (sched < -10) return
 
 				setTimeout(() => {
 					console.info(
-						`${chalk.magenta(`${h}:${m}`)} playing ${track.tid} (${track.ytid})`
+						`${chalk.magenta(`${h}:${pad(m)}`)} playing ${track.tid} (${
+							track.ytid
+						})`
 					)
 
 					console.info(
-						`(${chalk.cyan((track.duration / 60e3).toFixed(1))}) ${chalk.blue(
-							track.title.slice(0, 50)
-						)} `
+						` ╚ (${chalk.cyan(
+							(track.duration / 60e3).toFixed(1)
+						)}) ${chalk.blue(track.title.slice(0, 50))} `
 					)
 
 					play(track)
@@ -117,22 +125,28 @@ getTop()
 			let endin = end - currentSeconds,
 				[h, m] = sToHM(end)
 
-			console.info(`End of playback #${nthPrzerwa} @ ${h}:${m}`)
+			console.info(`» End of playback #${nthPrzerwa} @ ${h}:${pad(m)}`)
 
-			setTimeout(() => {
-				console.info(`Ending playback for #${nthPrzerwa}`)
-				player.fadeOut(6)
-				updateStatus(null, null, null, true)
-
-				if (nthPrzerwa == seconds.length - 1) {
-					console.info(`--- Day Ended ---`)
+			if (nthPrzerwa == seconds.length - 1) {
+				setTimeout(() => {
+					console.info(`≡≡≡ Day Ended ≡≡≡`)
 					setTimeout(() => {
 						process.exit(0)
-					}, 20e3)
-				}
+					}, 10e3)
+				}, endin * 1e3)
+			}
+
+			if (endin < 0) continue
+
+			setTimeout(() => {
+				console.info(`« Ending playback for #${nthPrzerwa} »\n`)
+				player.fadeOut(6)
+				updateStatus(null, null, null, true)
 			}, endin * 1e3)
 		}
 
+		player.pause()
+
 		console.info(`\nTrack scheduling done`)
-		console.info(`_______________________________`)
+		console.info(`─────────────────────────`)
 	})

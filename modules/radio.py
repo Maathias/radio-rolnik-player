@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 
 import vlc
 import pafy
+import requests
 import json
 from time import sleep
 
@@ -17,19 +18,19 @@ def info(type, data):
 
 def play(args):
     player.play()
-    info('ok', ['playing', True])
+    info('play', ['done'])
 
 
 def pause(args):
     player.pause()
-    info('ok', ['pause', True])
+    info('pause', ['done'])
 
 
 def volume(args):
     vol, *args = args
 
-    player.audio_set_volume(vol)
-    info('ok', ['volume', vol])
+    result = player.audio_set_volume(vol)
+    info('volume', ['set', vol, result])
 
 
 def fadeOut(args):
@@ -41,8 +42,8 @@ def fadeOut(args):
         player.audio_set_volume(v)
         sleep(duration / vol)
 
-    stop()
-    info('ok', ['faded out', True])
+    pause([])
+    info('fadeOut', ['done'])
 
 
 def fadeIn(args):
@@ -54,7 +55,7 @@ def fadeIn(args):
         player.audio_set_volume(v)
         sleep(duration / target)
 
-    info('ok', ['faded in', True])
+    info('fadeIn', ['done'])
 
 
 def close(args):
@@ -63,20 +64,43 @@ def close(args):
 
 
 def change(args):
-    url, *args = args
+    target, *args = args
 
-    audio = pafy.new(url)
-    best = audio.getbestaudio(preftype="webm")
-    playurl = best.url
+    def get(url):
+        info('change', ['get', url])
+        audio = pafy.new(url)
+        best = audio.getbestaudio(preftype="webm")
+        return best.url
+
+    def check(url):
+        info('change', ['check', url])
+        try:
+            r = requests.head(url)
+            info('change', ['check', r.status_code])
+            return r.status_code
+        except requests.ConnectionError:
+            info('change', ['check', 'failed'])
+            return 600
+
+    playurl = get(target)
+    tries = 0
+
+    while check(playurl) >= 400 and tries < 10:
+        playurl = get(target)
+        tries += 1
+
+    if tries == 10:
+        return info('change', ['failed'])
+
     Media = Instance.media_new(playurl)
     # Media.get_mrl()
     player.set_media(Media)
-    info('ok', ['changed', url])
+    info('change', ['done', target])
 
 
 def stop(args=[]):
     player.stop()
-    info('ok', ['stop', True])
+    info('stop', ['done'])
 
 
 def what(comm):
