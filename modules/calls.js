@@ -1,3 +1,4 @@
+import env from '../env.js'
 import chalk from 'chalk'
 import got from 'got'
 import spotifyToYt from 'spotify-to-yt'
@@ -42,11 +43,11 @@ function updateNext(tid) {
 	})
 }
 
-function getTop() {
+function getTop(mode = 'once') {
 	return new Promise((resolve, reject) => {
 		verbose > 1 && console.info(`GET top`)
 		got
-			.get(`https://${DOMAIN}/api/player/get/top`, {
+			.get(`https://${DOMAIN}/api/player/get/top?mode=${mode}`, {
 				headers,
 			})
 			.json()
@@ -71,4 +72,8 @@ function getTop() {
 	})
 }
 
-export { updateStatus, updateNext, getTop }
+function getTrack(tid) {
+	return got.get(`https://${DOMAIN}/api/track/${tid}`).json()
+}
+
+export { updateStatus, updateNext, getTop, getTrack }

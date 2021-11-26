@@ -31,5 +31,6 @@ VOLUME_DEFAULT=100
 OFFSET=60
 
 ; logging level (0-2)
+; 2 = highest
 VERBOSE=0
 ```
