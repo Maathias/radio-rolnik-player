@@ -1,5 +1,5 @@
 class Track {
-	constructor({ url, tid, info: [{ id, title, duration }] }) {
+	constructor(tid, { url, info: [{ id, title, duration }] }) {
 		this.url = url
 		this.tid = tid
 		this.ytid = id

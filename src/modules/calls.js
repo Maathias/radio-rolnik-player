@@ -1,12 +1,13 @@
-import env from '../env.js'
+import env from '../../env.js'
+
 import chalk from 'chalk'
 import got from 'got'
 import spotifyToYt from 'spotify-to-yt'
+import { logAction, logValue } from './log.js'
 
 const { DOMAIN, SECRET } = process.env,
 	headers = { authorization: 'Bearer ' + SECRET },
-	verbose = Number(process.env.VERBOSE),
-	limit = Number(process.env.LIMIT ?? 40)
+	verbose = Number(process.env.VERBOSE)
 
 function updateStatus(tid, progress, duration, paused) {
 	return new Promise((resolve, reject) => {
@@ -44,32 +45,17 @@ function updateNext(tid) {
 }
 
 function getTop(mode = 'once') {
-	return new Promise((resolve, reject) => {
-		verbose > 1 && console.info(`GET top`)
-		got
-			.get(`https://${DOMAIN}/api/player/get/top?mode=${mode}`, {
-				headers,
-			})
-			.json()
-			.then((top) => {
-				console.info(
-					`Resolving ${chalk.cyan(
-						top.length > limit ? limit + '/' + top.length : top.length
-					)} tracks`
-				)
-				Promise.all(
-					top
-						.slice(0, limit)
-						.map((tid) => spotifyToYt.trackGet(`spotify:track:${tid}`))
-				).then((yts) => {
-					top.slice(0, limit).map((tid, i) => {
-						yts[i].tid = tid
-					})
-					resolve(yts)
-				})
-			})
-			.catch((err) => reject(err))
-	})
+	logAction(`Fetching tids`, mode)
+
+	return got
+		.get(`https://${DOMAIN}/api/player/get/top?mode=${mode}`, {
+			headers,
+		})
+		.json()
+		.then((tids) => {
+			logValue('Tracks', tids.length)
+			return tids
+		})
 }
 
 function getTrack(tid) {
