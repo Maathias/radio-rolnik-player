@@ -1,5 +1,11 @@
 import spotifyToYt from 'spotify-to-yt'
-import fs from 'fs'
+import {
+	createWriteStream,
+	existsSync,
+	mkdirSync,
+	renameSync,
+	statSync,
+} from 'fs'
 import ytdl from 'ytdl-core'
 
 import { logAction, logError } from './log.js'
@@ -32,8 +38,8 @@ function fetch(url, target, progress, end) {
 		const temp = target + '.tmp',
 			final = target
 
-		if (!fs.existsSync(cache)) {
-			fs.mkdirSync(cache)
+		if (!existsSync(cache)) {
+			mkdirSync(cache)
 		}
 
 		let stream = ytdl(url, {
@@ -43,7 +49,7 @@ function fetch(url, target, progress, end) {
 					return true
 				},
 			}),
-			file = fs.createWriteStream(temp)
+			file = createWriteStream(temp)
 
 		let written = 0
 
@@ -56,7 +62,7 @@ function fetch(url, target, progress, end) {
 
 		stream.on('end', () => {
 			file.close(() => {
-				fs.renameSync(temp, final)
+				renameSync(temp, final)
 				end(final, written)
 				resolve(final)
 			})
@@ -64,10 +70,21 @@ function fetch(url, target, progress, end) {
 	})
 }
 
+function check(path) {
+	if (existsSync(path)) {
+		let { size, atime } = statSync(path),
+			daysAgo = (new Date().getTime() - atime.getTime()) / 1024 / 60 / 60 / 24
+
+		return { size, daysAgo }
+	} else {
+		return { size: null, daysAgo: null }
+	}
+}
+
 async function download(track) {
 	const target = `${cache}/${track.tid}.mp4`
 
-	if (fs.existsSync(target)) return target
+	if (existsSync(target)) return target
 
 	return await fetch(
 		track.url,
@@ -86,4 +103,4 @@ async function download(track) {
 	})
 }
 
-export { convert, download }
+export { convert, download, check }

@@ -25,6 +25,10 @@ if (major < minMajor || (major == minMajor && minor < minMinor)) {
 // Parse arguments
 
 const args = yargs(process.argv.slice(2))
+	.option('missing', {
+		alias: 'm',
+		type: 'boolean',
+	})
 	.option('tid', {
 		alias: 'T',
 	})
@@ -79,5 +83,8 @@ switch (args._[0]) {
 				logTrack(track)
 			})
 		})
+		break
+	case 'cache':
+		cache({ missingOnly: args.m })
 		break
 }
