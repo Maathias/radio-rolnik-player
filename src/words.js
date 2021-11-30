@@ -3,8 +3,7 @@ import yesno from 'yesno'
 
 import { getTop, getTrack } from './modules/calls.js'
 import { logAction, logTrack, logValue } from './modules/log.js'
-import { single, filter, info } from './modules/lyrics.js'
-import { convert } from './modules/youtube.js'
+import { filter, info } from './modules/lyrics.js'
 
 const lowWordCount = 190
 

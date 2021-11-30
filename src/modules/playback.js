@@ -1,4 +1,4 @@
-import config from '../../env.js'
+import { verbose } from '../../env.js'
 
 import { spawn } from 'child_process'
 
@@ -8,8 +8,6 @@ class PlaybackError extends Error {
 	}
 }
 
-const verbose = Number(process.env.VERBOSE)
-
 var radio,
 	busy = true,
 	waiting = []
@@ -17,10 +15,18 @@ var radio,
 export default async function playback() {
 	radio = spawn('python', ['src/modules/radio.py'])
 
+	radio.stdin.setEncoding('utf-8')
+
 	radio.stdout.on('data', (data) => {
 		let lines = data.toString().split('\n')
 		for (let line of lines) {
-			let [status, ...data] = JSON.parse(line)
+			try {
+				var [status, ...data] = JSON.parse(line)
+			} catch (err) {
+				console.error('Invalid JSON from player')
+				console.error('Received: ', line)
+				throw err
+			}
 
 			verbose > 1 && console.info('¤ >', status, data)
 
@@ -39,10 +45,8 @@ export default async function playback() {
 	})
 
 	radio.on('close', (code) => {
-		throw `child process exited with code ${code}`
+		throw `vlc exited with code ${code}`
 	})
-
-	radio.stdin.setEncoding('utf-8')
 }
 
 function sendCommand(comm, data = [null]) {
@@ -71,4 +75,4 @@ const player = {
 		queueCommand('fade.in', [duration, target]),
 }
 
-export { player, queueCommand, sendCommand }
+export { player, queueCommand }

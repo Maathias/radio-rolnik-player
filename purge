@@ -1,0 +1,2 @@
+find cache/* -mtime +7
+find cache/* -mtime +7 -exec rm {} \;

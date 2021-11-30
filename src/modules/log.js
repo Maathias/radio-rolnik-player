@@ -4,8 +4,8 @@ function logValue(label, value) {
 	console.info(label + ':', chalk.yellow(value))
 }
 
-function logAction(label, value = '') {
-	console.info(chalk.bold(label), chalk.yellow(value))
+function logAction(label, ...value) {
+	console.info(chalk.bold(label), chalk.yellow(value.join(' ')))
 }
 
 function logError(label, value) {

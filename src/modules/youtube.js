@@ -2,8 +2,9 @@ import spotifyToYt from 'spotify-to-yt'
 import fs from 'fs'
 import ytdl from 'ytdl-core'
 
-import Track from '../classes/Track.js'
 import { logAction, logError } from './log.js'
+
+import Track from '../classes/Track.js'
 
 const cache = './cache'
 
@@ -36,7 +37,11 @@ function fetch(url, target, progress, end) {
 		}
 
 		let stream = ytdl(url, {
-				filter: 'audioonly',
+				filter: (format) => {
+					if (format.hasVideo) return false
+					if (format.container == 'mp4') return false
+					return true
+				},
 			}),
 			file = fs.createWriteStream(temp)
 
@@ -50,8 +55,7 @@ function fetch(url, target, progress, end) {
 		})
 
 		stream.on('end', () => {
-			file.close()
-			file.on('close', () => {
+			file.close(() => {
 				fs.renameSync(temp, final)
 				end(final, written)
 				resolve(final)

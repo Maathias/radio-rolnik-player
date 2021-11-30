@@ -1,11 +1,9 @@
-import env from '../../env.js'
+import { geniusKey } from '../../env.js'
 
-import { getLyrics, getSong } from 'genius-lyrics-api'
+import chalk from 'chalk'
+import { getSong } from 'genius-lyrics-api'
 
 import triggers from '../../resources/triggers.js'
-import chalk from 'chalk'
-
-const apiKey = process.env.GENIUS_KEY
 
 /**
  * Filters
@@ -40,21 +38,6 @@ function filter(lyrics) {
 		} else highlighted.push(word)
 	}
 
-	// for (let trigger of triggers) {
-	// 	let count = 0
-
-	// 	for (let word of words) {
-	// 		if (word.toLowerCase().match(trigger)) {
-	// 			count++
-	// 			console.log(word)
-	// 			highlighted.push(chalk.red(word))
-	// 			continue // only count first match
-	// 		} else highlighted.push(word)
-	// 	}
-
-	// 	if (count > 0) results[trigger] = count
-	// }
-
 	return {
 		lyrics,
 		results,
@@ -63,22 +46,13 @@ function filter(lyrics) {
 	}
 }
 
-function single(title = '', artist = '') {
-	return getLyrics({
-		apiKey,
-		optimizeQuery: true,
-		title,
-		artist,
-	})
-}
-
 async function info(title, artists) {
 	var out = { id: null, url: null, title: null, lyrics: null },
 		best = -1
 
 	for (let artist of artists) {
 		const result = await getSong({
-				apiKey,
+				apiKey: geniusKey,
 				optimizeQuery: true,
 				title,
 				artist: artist,
@@ -91,8 +65,6 @@ async function info(title, artists) {
 					return word.toLowerCase().includes(tword.toLowerCase())
 				})
 			).length
-
-			// console.log(result.title.split(' '), target)
 
 			result.match = match
 
@@ -108,4 +80,4 @@ async function info(title, artists) {
 	return out
 }
 
-export { single, filter, info }
+export { filter, info }

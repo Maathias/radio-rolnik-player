@@ -1,13 +1,10 @@
-import env from '../../env.js'
+import { domain, secret, verbose } from '../../env.js'
 
-import chalk from 'chalk'
 import got from 'got'
-import spotifyToYt from 'spotify-to-yt'
+
 import { logAction, logValue } from './log.js'
 
-const { DOMAIN, SECRET } = process.env,
-	headers = { authorization: 'Bearer ' + SECRET },
-	verbose = Number(process.env.VERBOSE)
+const headers = { authorization: 'Bearer ' + secret }
 
 function updateStatus(tid, progress, duration, paused) {
 	return new Promise((resolve, reject) => {
@@ -45,10 +42,10 @@ function updateNext(tid) {
 }
 
 function getTop(mode = 'once') {
-	logAction(`Fetching tids`, mode)
+	logAction(`Fetching tids`, mode, domain)
 
 	return got
-		.get(`https://${DOMAIN}/api/player/get/top?mode=${mode}`, {
+		.get(`https://${domain}/api/player/get/top?mode=${mode}`, {
 			headers,
 		})
 		.json()
@@ -59,7 +56,7 @@ function getTop(mode = 'once') {
 }
 
 function getTrack(tid) {
-	return got.get(`https://${DOMAIN}/api/track/${tid}`).json()
+	return got.get(`https://${domain}/api/track/${tid}`).json()
 }
 
 export { updateStatus, updateNext, getTop, getTrack }
