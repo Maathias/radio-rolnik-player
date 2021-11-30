@@ -1,6 +1,7 @@
-import { verbose } from '../../env.js'
+import { defaultVolume, verbose } from '../../env.js'
 
 import { spawn } from 'child_process'
+import { updateStatus } from './calls.js'
 
 class PlaybackError extends Error {
 	constructor(message = '', ...args) {
@@ -64,6 +65,21 @@ function queueCommand(comm, data) {
 		})
 	} else sendCommand(comm, data)
 }
+
+function stream(track) {
+	queueCommand('change', [track.url])
+	player.play()
+	queueCommand('volume', [defaultVolume])
+}
+
+function local(track) {
+	queueCommand('local', [`./cache/${track.tid}.mp4`])
+	player.play()
+	queueCommand('volume', [defaultVolume])
+	updateStatus(track, 0, track.duration)
+}
+
+export { stream, local }
 
 const player = {
 	play: () => queueCommand('play'),

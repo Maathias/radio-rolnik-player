@@ -4,21 +4,8 @@ import playback, { player, queueCommand } from './modules/playback.js'
 import { getTop, updateNext, updateStatus } from './modules/calls.js'
 import { convert } from './modules/youtube.js'
 import { parse, cache, scheduler } from './modules/parse.js'
-
 import { logAction, logSchedule, logTrack, logValue } from './modules/log.js'
-
-function stream(track) {
-	queueCommand('change', [track.url])
-	player.play()
-	queueCommand('volume', [defaultVolume])
-}
-
-function local(track) {
-	queueCommand('local', [`./cache/${track.tid}.mp4`])
-	player.play()
-	queueCommand('volume', [defaultVolume])
-	updateStatus(track.tid, 0, track.duration, false)
-}
+import { local } from './modules/playback.js'
 
 export default async function standalone() {
 	logValue('Volume', defaultVolume)

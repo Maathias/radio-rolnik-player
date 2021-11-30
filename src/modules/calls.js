@@ -6,38 +6,47 @@ import { logAction, logValue } from './log.js'
 
 const headers = { authorization: 'Bearer ' + secret }
 
-function updateStatus(tid, progress, duration, paused) {
+function updateStatus(track, progress = null, duration = null, paused) {
 	return new Promise((resolve, reject) => {
-		verbose > 1 && console.info(`PUT status`, tid, progress, duration, paused)
+		console.log({
+			tid: track?.tid ?? null,
+			progress,
+			duration,
+			paused: paused ?? track ? false : true,
+		})
 		got
-			.put(`https://${DOMAIN}/api/player/set/status`, {
+			.put(`https://${domain}/api/player/set/status`, {
 				headers,
 				json: {
-					tid,
+					tid: track?.tid ?? null,
 					progress,
 					duration,
-					paused,
+					paused: paused ?? track ? false : true,
 				},
 			})
 			.json()
 			.then((ok) => resolve(ok))
 			.catch((err) => reject(err))
+
+		verbose > 1 &&
+			console.info(`PUT status`, track?.tid, progress, duration, paused)
 	})
 }
 
-function updateNext(tid) {
+function updateNext(track) {
 	return new Promise((resolve, reject) => {
-		verbose > 1 && console.info(`PUT next`, tid)
 		got
-			.put(`https://${DOMAIN}/api/player/set/next`, {
+			.put(`https://${domain}/api/player/set/next`, {
 				headers,
 				json: {
-					tid,
+					tid: track ? track.tid : null,
 				},
 			})
 			.json()
 			.then((ok) => resolve(ok))
 			.catch((err) => reject(err))
+
+		verbose > 1 && console.info(`PUT next`, track?.tid)
 	})
 }
 
