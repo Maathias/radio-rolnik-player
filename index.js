@@ -29,6 +29,10 @@ const args = yargs(process.argv.slice(2))
 		alias: 'm',
 		type: 'boolean',
 	})
+	.option('cache', {
+		alias: 'c',
+		type: 'boolean',
+	})
 	.option('tid', {
 		alias: 'T',
 	})
@@ -86,5 +90,8 @@ switch (args._[0]) {
 		break
 	case 'cache':
 		cache({ missingOnly: args.m })
+		break
+	case 'schedule':
+		schedule({ checkCache: args.c })
 		break
 }
