@@ -1,21 +1,25 @@
 import yargs from 'yargs'
-import { getTop } from './src/modules/calls.js'
+
+import cache from './src/cache.js'
+import schedule from './src/schedule.js'
+import standalone from './src/standalone.js'
+import test from './src/test.js'
+import words, { one } from './src/words.js'
+
 import { logTrack } from './src/modules/log.js'
 import { convert } from './src/modules/youtube.js'
-
-import standalone from './src/standalone.js'
-import words, { one } from './src/words.js'
 
 // Check Node version
 
 const [minMajor, minMinor] = [16, 13],
 	[major, minor] = process.version.slice(1).split('.')
 
-if (major < minMajor || minor < minMinor) {
+if (major < minMajor || (major == minMajor && minor < minMinor)) {
 	console.error(
 		`Node ${minMajor}.${minMinor} reqired. Running ${major}.${minor}`
 	)
 	process.exit(1)
+} else {
 }
 
 // Parse arguments
