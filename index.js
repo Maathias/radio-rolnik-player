@@ -94,4 +94,6 @@ switch (args._[0]) {
 	case 'schedule':
 		schedule({ checkCache: args.c })
 		break
+	case 'test':
+		test()
 }
