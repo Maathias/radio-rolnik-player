@@ -18,13 +18,13 @@ function stream(track) {
 	queueCommand('change', [track.url])
 	player.play()
 	queueCommand('volume', [defaultVolume])
-	updateStatus(track.tid, 0, track.duration, false)
 }
 
 function local(track) {
 	queueCommand('local', [`./cache/${track.tid}.mp4`])
 	player.play()
 	queueCommand('volume', [defaultVolume])
+	updateStatus(track.tid, 0, track.duration, false)
 }
 
 function parse(tracks) {
@@ -121,6 +121,7 @@ export default async function standalone() {
 					logAction(` ╔ « Playing »`)
 					logTrack(track)
 					local(track)
+					updateNext(_tracks[n + 1]?.tid ?? null)
 				}, starts.to() * 1e3)
 		}
 
@@ -131,6 +132,7 @@ export default async function standalone() {
 			setTimeout(() => {
 				logAction(`» End of #${przerwa} «`)
 				player.fadeOut(6)
+				updateStatus(null, null, null, true)
 			}, end.to() * 1e3)
 	}
 
