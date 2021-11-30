@@ -55,7 +55,7 @@ async function one({ title, artists, tid }) {
 
 export { one }
 
-export default function words({ sus, rolling }) {
+export default function words({ sus: susOnly, rolling }) {
 	return getTop(rolling ? 'rolling' : 'once').then(async (top) => {
 		for (let tid of top.slice(20)) {
 			const { title, artists } = await getTrack(tid)
@@ -91,7 +91,7 @@ export default function words({ sus, rolling }) {
 					options.color = 'yellow'
 					options.meta = ' no lyrics found'
 				} else {
-					if (sus) return
+					if (susOnly) return
 				}
 
 				logTrack(track, options)

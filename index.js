@@ -69,7 +69,7 @@ switch (args._[0]) {
 			} else if (title && artists) {
 				one({ title, artists })
 			}
-		} else words({ sus: args.s || args.banned })
+		} else words({ susOnly: args.s || args.banned })
 		break
 	case 'convert':
 		let tid = args.T ? [args.T] : args.tids
