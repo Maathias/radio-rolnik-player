@@ -25,6 +25,10 @@ if (major < minMajor || (major == minMajor && minor < minMinor)) {
 // Parse arguments
 
 const args = yargs(process.argv.slice(2))
+	.option('rolling', {
+		alias: 'r',
+		type: 'boolean',
+	})
 	.option('missing', {
 		alias: 'm',
 		type: 'boolean',
@@ -32,6 +36,7 @@ const args = yargs(process.argv.slice(2))
 	.option('cache', {
 		alias: 'c',
 		type: 'boolean',
+		default: false,
 	})
 	.option('tid', {
 		alias: 'T',
@@ -92,7 +97,7 @@ switch (args._[0]) {
 		cache({ missingOnly: args.m })
 		break
 	case 'schedule':
-		schedule({ checkCache: args.c })
+		schedule({ checkCache: args.c, rolling: args.r })
 		break
 	case 'test':
 		test()

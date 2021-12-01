@@ -5,8 +5,11 @@ import { logSchedule, logTrack } from './modules/log.js'
 import { parse, scheduler } from './modules/parse.js'
 import { check, convert } from './modules/youtube.js'
 
-export default async function schedule({ checkCache }) {
-	const { schedule, tracks, ends } = await getTop() // tids
+export default async function schedule({
+	checkCache = false,
+	rolling = false,
+}) {
+	const { schedule, tracks, ends } = await getTop(rolling ? 'rolling' : 'once') // tids
 		.then((tids) => tids.slice(0, limit))
 		.then(convert) // Tracks
 		.then(parse) // chart
@@ -24,7 +27,9 @@ export default async function schedule({ checkCache }) {
 			if (checkCache) var { size } = check(`cache/${track.tid}.mp4`)
 
 			logSchedule(starts)
-			logTrack(track, { color: size ? undefined : 'red' })
+			logTrack(track, {
+				color: checkCache ? (size ? undefined : 'red') : undefined,
+			})
 		}
 
 		logSchedule(end, `#${przerwa} End`)
