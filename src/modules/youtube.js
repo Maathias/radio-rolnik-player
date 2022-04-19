@@ -1,4 +1,5 @@
 import spotifyToYt from 'spotify-to-yt'
+import { YouTube } from 'youtube-sr'
 import {
 	createWriteStream,
 	existsSync,
@@ -11,11 +12,35 @@ import ytdl from 'ytdl-core'
 import { logAction, logError } from './log.js'
 
 import Track from '../classes/Track.js'
+import { getTrack } from './calls.js'
 
 const cache = './cache'
 
 function convert(tids) {
 	logAction(`Running converter`, tids.length)
+
+	return Promise.all(
+		tids.map(async (tid) => {
+			let { title, artists } = await getTrack(tid)
+
+			return await YouTube.search(
+				`${title} ${artists.join(' ')} official audio`,
+				{ limit: 10, type: 'video' }
+			).then((videos) => {
+				if (videos.length < 1) {
+					logError('No videos found, retrying', tid)
+					return YouTube.search(`${title} ${artists.join(' ')}`, {
+						limit: 10,
+						type: 'video',
+					}).then((videos) => {
+						if (videos.length < 1) {
+							logError(`Conversion failed twice, I give up`, tid)
+						} else return videos
+					})
+				} else return videos
+			})
+		})
+	).then((ytd) => tids.map((tid, i) => new Track(tid, ytd[i])))
 
 	return Promise.all(
 		tids.map((tid) =>
