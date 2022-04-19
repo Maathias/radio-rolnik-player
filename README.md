@@ -2,14 +2,14 @@
 
 ## Resources
 
-Website - https://github.com/Maathias/radio-rolnik/
+Frontend - [Maathias/radio-rolnik](https://github.com/Maathias/radio-rolnik/)
 
-API - https://github.com/Maathias/radio-rolnik-api/
+API - [Maathias/radio-rolnik-api](https://github.com/Maathias/radio-rolnik-api/)
 
 ## Requirements
 
 - shell
-  - VLC
+  <!-- - VLC -->
   - python3
 - python
   - python-dotenv
@@ -30,7 +30,23 @@ VOLUME_DEFAULT=100
 ; playback delay (s)
 OFFSET=60
 
-; logging level (0-2)
-; 2 = highest
+; logging level (0-2) 2 = most verbose
 VERBOSE=0
 ```
+
+## Usage
+
+`./run <mode>` to run in specified mode.
+
+`standalone` is the default.
+- Fetches a list of track IDs to be played,
+- converts them to youtube links,
+- downloads and caches them,
+- schedules timestamps at which they should be played,
+- calls timeouts for every track
+
+At the end of every sections, the audio automatically fades down. At the end of queue, process exits.
+
+`web`, `lyrics`, `convert`, `cache`, `schedule`, `test`, `playlist` are also available, but not very functional.
+
+Very much work in progress, very buggy and unstable. 
