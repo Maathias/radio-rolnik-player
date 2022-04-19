@@ -1,152 +1,115 @@
-import env from './env.js'
-import chalk from 'chalk'
+import yargs from 'yargs'
+import { readFileSync } from 'fs'
 
-import { player, queueCommand } from './modules/playback.js'
-import { getTop, updateNext, updateStatus } from './modules/calls.js'
-import { now, durations, seconds } from './modules/timings.js'
+import web from './src/web.js'
+import cache from './src/cache.js'
+import schedule from './src/schedule.js'
+import standalone from './src/standalone.js'
+import test from './src/test.js'
+import words, { one } from './src/words.js'
 
-import Track from './Track.js'
+import { logAction, logTrack } from './src/modules/log.js'
+import { convert } from './src/modules/youtube.js'
 
-const defaultVolume = parseInt(process.env.VOLUME_DEFAULT ?? 100),
-	offset = Number(process.env.OFFSET ?? 0),
-	verbose = Number(process.env.VERBOSE ?? 0)
+// Check Node version
 
-function play(track) {
-	queueCommand('change', [track.url])
-	player.play()
-	queueCommand('volume', [defaultVolume])
-	updateStatus(track.tid, 0, track.duration, false)
+const [minMajor, minMinor] = [16, 13],
+	[major, minor] = process.version.slice(1).split('.')
+
+if (major < minMajor || (major == minMajor && minor < minMinor)) {
+	console.error(
+		`Node ${minMajor}.${minMinor} reqired. Running ${major}.${minor}`
+	)
+	process.exit(1)
+} else {
 }
 
-function sToHM(seconds) {
-	let h = ~~(seconds / 3600),
-		m = ~~((seconds - h * 3600) / 60)
+// Parse arguments
 
-	return [h, m]
-}
+const args = yargs(process.argv.slice(2))
+	.option('rolling', {
+		alias: 'r',
+		type: 'boolean',
+	})
+	.option('missing', {
+		alias: 'm',
+		type: 'boolean',
+	})
+	.option('cache', {
+		alias: 'c',
+		type: 'boolean',
+		default: false,
+	})
+	.option('tid', {
+		alias: 'T',
+	})
+	.option('tids', {
+		type: 'array',
+		default: [],
+	})
+	.option('sus', {
+		alias: 's',
+		type: 'boolean',
+	})
+	.option('title', {
+		alias: 't',
+		type: 'array',
+		default: [],
+	})
+	.option('playlist', {
+		alias: 'p',
+		type: 'string',
+	})
+	.option('artists', {
+		alias: 'a',
+		type: 'array',
+		default: [],
+	}).argv
 
-function pad(n) {
-	return n < 10 ? '0' + n : n
-}
+// console.log(args)
 
-console.info(
-	`Volume: ${chalk.yellow(defaultVolume)}, Verbose: ${chalk.yellow(
-		verbose
-	)}, Limit: ${chalk.yellow(process.env.LIMIT)}`
-)
+switch (args._[0]) {
+	default:
+		console.log('Defaulting to standalone')
+	case 'standalone':
+		standalone({ rolling: args.r })
+		break
+	case 'web':
+		web()
+		break
+	case 'lyrics':
+		if (args.T || args.t.length > 0 || args.a.length > 0) {
+			let tid = args.T,
+				title = args.t.join(' '),
+				artists = args.a.join(' ')
 
-console.info(`Fetching playlist (${chalk.yellow(process.env.DOMAIN)})`)
-
-getTop()
-	.then(async (data) => {
-		console.info(`Parsing playlist`)
-
-		let schedule = durations.map(() => [])
-
-		const top = data.map((tdata) => new Track(tdata))
-
-		let n = 0
-
-		for (let i in durations) {
-			let total = 0
-			while (total < durations[i]) {
-				if (n >= top.length) break
-				total += top[n].duration / 1e3
-				schedule[i].push(top[n])
-				n++
+			if (tid) {
+				one({ tid })
+			} else if (title && artists) {
+				one({ title, artists })
 			}
-		}
+		} else words({ susOnly: args.s || args.banned })
+		break
+	case 'convert':
+		let tid = args.T ? [args.T] : args.tids
 
-		return schedule
-	})
-	.catch((err) => {
-		throw err
-	})
-	.then((schedule) => {
-		let currentSeconds = now() - offset
-
-		console.info(
-			`Running track scheduler @${new Date().toLocaleTimeString()} +${chalk.yellow(
-				offset
-			)}s`
-		)
-
-		for (let nthPrzerwa in seconds) {
-			let [begin, end] = seconds[nthPrzerwa]
-
-			var tracktotal = 0
-
-			console.info(chalk.green(`\nPrzerwa #${nthPrzerwa}`))
-
-			schedule[nthPrzerwa].forEach((track, i) => {
-				tracktotal += (schedule[nthPrzerwa][i - 1]?.duration ?? 0) / 1e3
-
-				let sched = begin - currentSeconds + tracktotal
-
-				let [h, m] = sToHM(currentSeconds + sched)
-
-				console.info(
-					`scheduling ${track.tid} @ ${chalk.red(
-						`${h}:${pad(m)}`
-					)} in ${sched}s`
-				)
-
-				console.info(
-					`╚═ (${chalk.cyan((track.duration / 60e3).toFixed(1))}) [${chalk.blue(
-						track.title.slice(0, 50)
-					)}]`
-				)
-
-				if (sched < -10) return
-
-				setTimeout(() => {
-					console.info(
-						`${chalk.magenta(`${h}:${pad(m)}`)} playing ${track.tid} (${
-							track.ytid
-						})`
-					)
-
-					console.info(
-						` ╚ (${chalk.cyan(
-							(track.duration / 60e3).toFixed(1)
-						)}) ${chalk.blue(track.title.slice(0, 50))} `
-					)
-
-					play(track)
-					updateNext(schedule[nthPrzerwa][i + 1]?.tid ?? null)
-				}, sched * 1e3)
+		convert(tid).then((tracks) => {
+			tracks.forEach((track) => {
+				logTrack(track)
 			})
-
-			verbose > 0 &&
-				setTimeout(() => {
-					console.info(`Beginning of #${nthPrzerwa} in 10s`)
-				}, (begin - currentSeconds) * 1e3 - 10e3)
-
-			let endin = end - currentSeconds,
-				[h, m] = sToHM(end)
-
-			console.info(`» End of playback #${nthPrzerwa} @ ${h}:${pad(m)}`)
-
-			if (nthPrzerwa == seconds.length - 1) {
-				setTimeout(() => {
-					console.info(`≡≡≡ Day Ended ≡≡≡`)
-					setTimeout(() => {
-						process.exit(0)
-					}, 10e3)
-				}, endin * 1e3)
-			}
-
-			if (endin < 0) continue
-
-			setTimeout(() => {
-				console.info(`« Ending playback for #${nthPrzerwa} »\n`)
-				player.fadeOut(6)
-				updateStatus(null, null, null, true)
-			}, endin * 1e3)
-		}
-
-		player.pause()
-
-		console.info(`\nTrack scheduling done`)
-		console.info(`─────────────────────────`)
-	})
+		})
+		break
+	case 'cache':
+		cache({ missingOnly: args.m })
+		break
+	case 'schedule':
+		schedule({ checkCache: args.c, rolling: args.r })
+		break
+	case 'test':
+		test()
+	case 'playlist':
+		logAction('Reading playlist', args.p)
+		const tids = JSON.parse(readFileSync(`./${args.p}.json`))
+		standalone({ tids })
+		break
+}

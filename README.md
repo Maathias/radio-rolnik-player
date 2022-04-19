@@ -12,8 +12,8 @@ API - https://github.com/Maathias/radio-rolnik-api/
   - VLC
   - python3
 - python
-  - dotenv
-  - vlc
+  - python-dotenv
+  - python-vlc
   - pafy
   - youtube_dl
 

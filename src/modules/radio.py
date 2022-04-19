@@ -98,6 +98,14 @@ def change(args):
     info('change', ['done', target])
 
 
+def local(args):
+    file, *args = args
+
+    Media = Instance.media_new_path(file)
+    player.set_media(Media)
+    info('local', ['done', file])
+
+
 def stop(args=[]):
     player.stop()
     info('stop', ['done'])
@@ -109,6 +117,7 @@ def what(comm):
         "pause": pause,
         "stop": stop,
         "change": change,
+        "local": local,
         "volume": volume,
         "fade.out": fadeOut,
         "fade.in": fadeIn,

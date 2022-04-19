@@ -48,6 +48,7 @@ export default [
 	'dupa',
 	'dupie',
 	'dupą',
+	'dupom',
 	'dupcia',
 	'dupeczka',
 	'dupy',

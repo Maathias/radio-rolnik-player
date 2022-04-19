@@ -1,6 +1,6 @@
 class Track {
-	constructor({ url, tid, info: [{ id, title, duration }] }) {
-		this.url = url
+	constructor(tid, [{ id, title, duration }]) {
+		this.url = `https://www.youtube.com/watch?v=${id}`
 		this.tid = tid
 		this.ytid = id
 		this.title = title
