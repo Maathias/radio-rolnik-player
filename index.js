@@ -1,12 +1,14 @@
 import yargs from 'yargs'
+import { readFileSync } from 'fs'
 
+import web from './src/web.js'
 import cache from './src/cache.js'
 import schedule from './src/schedule.js'
 import standalone from './src/standalone.js'
 import test from './src/test.js'
 import words, { one } from './src/words.js'
 
-import { logTrack } from './src/modules/log.js'
+import { logAction, logTrack } from './src/modules/log.js'
 import { convert } from './src/modules/youtube.js'
 
 // Check Node version
@@ -54,6 +56,10 @@ const args = yargs(process.argv.slice(2))
 		type: 'array',
 		default: [],
 	})
+	.option('playlist', {
+		alias: 'p',
+		type: 'string',
+	})
 	.option('artists', {
 		alias: 'a',
 		type: 'array',
@@ -64,12 +70,12 @@ const args = yargs(process.argv.slice(2))
 
 switch (args._[0]) {
 	default:
-		console.log('Defaulting to Web module')
+		console.log('Defaulting to standalone')
+	case 'standalone':
+		standalone({ rolling: args.r })
+		break
 	case 'web':
 		web()
-		break
-	case 'standalone':
-		standalone()
 		break
 	case 'lyrics':
 		if (args.T || args.t.length > 0 || args.a.length > 0) {
@@ -101,4 +107,9 @@ switch (args._[0]) {
 		break
 	case 'test':
 		test()
+	case 'playlist':
+		logAction('Reading playlist', args.p)
+		const tids = JSON.parse(readFileSync(`./${args.p}.json`))
+		standalone({ tids })
+		break
 }
